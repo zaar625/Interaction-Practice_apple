@@ -16,10 +16,18 @@ a{
 	text-decoration: none;
 }
 .global-nav{
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
 	height: 44px;
 	padding: 0 1rem;
 }
 .local-nav{
+	position: absolute;
+	top: 45px;
+	left: 0;
+	width: 100%;
 	height: 52px;
 	border-bottom:1px solid #ddd;
 	padding: 0 1rem;
@@ -49,6 +57,7 @@ a{
 
 .scroll-section{
 	padding-top: 50vh;
+	border: 3px solid red;
 }
 #scroll-section-0 h1{
 	font-size: 4rem;
@@ -82,6 +91,7 @@ a{
 	margin-right: 0.2em;
 }
 .main-message small{
+	opacity: 0;
 	display: block;
 	margin-bottom: 0.5em;
 	font-size: 1.2rem;
@@ -125,8 +135,8 @@ a{
 .sticky-elem{
 	display: none;
 	position: fixed;
-	top: 0;
 	left: 0;
+	top: 0;
 	width: 100%;
 }
 #show-scene-0 #scroll-section-0 .sticky-elem,
