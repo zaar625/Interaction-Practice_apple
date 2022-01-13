@@ -18,8 +18,10 @@
                 messageD:document.querySelector('#scroll-section-0 .main-message.d')
             },
             values:{
-                messageA_opacity:[0, 1, {start: 0.1, end: 0.2}],
-                messageB_opacity:[0, 1, {start: 0.3, end: 0.4}]
+                //어느시점에 등장하고 빠져나갈지의 구간[시작값(투명도 0) 끝값(투명도1)]
+                messageA_opacity_in:[0, 1, {start: 0.1, end: 0.2}],//객체는 애니메션 구간이고 비소수점인 이유는 비율.
+                messageB_opacity_in:[0, 1, {start: 0.3, end: 0.4}],
+                messageA_opacity_out:[1, 0, {start: 0.2, end: 0.3}],
             }
         },
         {
@@ -57,7 +59,7 @@
             sceneInfo[i].scrollHeight = sceneInfo[i].heightNum * window.innerHeight;
             sceneInfo[i].objs.container.style.height=`${sceneInfo[i].scrollHeight}px`
         }
-
+        //새로고침할 경우 반영될 씬
         let totalScrollHeight = 0;
         for (let i = 0; i < sceneInfo.length; i++){
             totalScrollHeight += sceneInfo[i].scrollHeight;
@@ -69,15 +71,16 @@
         document.body.setAttribute('id',`show-scene-${currentScene}`)
     }
 
-
+    //현재 활성화 시킬 씬
     function scrollLoop(){
+        //enterNewCene: 섹션이 바뀌는 순간 opacity가 -값이 나온다. 이를해결하게위해
         enterNewScene = false;
         prevScrollHeight = 0;
         for(let i = 0; i<currentScene; i ++){
             // prevScrollHeight = prevScrollHeight + sceneInfo[i].scrollHeight;
             prevScrollHeight += sceneInfo[i].scrollHeight;
         }
-        //console.log(prevScrollHeight)
+        //console.log(prevScrollHeight) 약15990(4개의 총섹션 높이)
         if(yOffset > prevScrollHeight + sceneInfo[currentScene].scrollHeight){
             enterNewScene = true;
             currentScene++;
@@ -88,23 +91,27 @@
             currentScene--;
             document.body.setAttribute('id',`show-scene-${currentScene}`)
         }
-         console.log(currentScene);
+        //  console.log(currentScene);
         
-        if(enterNewScene) return;
+        if(enterNewScene) return;// return순간 playAnimation이 실행이 안됨.
 
         playAnimation();
     }
-    function calcVaues(values, currentYOffset){
+
+    //(values = values.messageA_opacity)
+    //현재 섹션의 구간을 0~1로 생각
+    function calcValues(values, currentYOffset){
         let rv;
         //현재 씬(스크롤섹션)에서 스크롤된 범위를 비율로 구하기
         const scrollHeight = sceneInfo[currentScene].scrollHeight;
-        const scrolllRatio = currentYOffset /scrollHeight;
+        const scrolllRatio = currentYOffset /scrollHeight; //--(0~1까지 이동한 스크롤의 비율)
+        // rv = scrollRatio * (values[1] - values[0]) + values[0];
 
         if(values.length === 3){
             //start ~ end 사이에 애니메이션 실행
             const partScrollStart = values[2].start *scrollHeight;
             const partScrollEnd = values[2].end * scrollHeight;
-            const partScrollHeight = partScrollEnd - partScrollStart;
+            const partScrollHeight = partScrollEnd - partScrollStart;//애니메이션 구현될 스크롤 구간크기
 
             if(currentYOffset >= partScrollStart && currentYOffset <= partScrollEnd){
                 rv = (currentYOffset - partScrollStart) / partScrollHeight *(values[1] - values[0]) + values[0];
@@ -120,17 +127,22 @@
         return rv;
     }
 
+    //해당 scroll-section(현재섹션 구간)에서 구현할 애니메이션
     function playAnimation(){
         const objs = sceneInfo[currentScene].objs;
         const values = sceneInfo[currentScene].values;
-        const currentYOffset = yOffset - prevScrollHeight;
-        console.log(currentScene)
+        const currentYOffset = yOffset - prevScrollHeight;//현재 씬에서의 YOffset
+        // console.log(currentYOffset,currentScene)
+        const scrollHeight = sceneInfo[currentScene].scrollHeight;
+        const scrollRatio = (yOffset - prevScrollHeight) /scrollHeight
+        //현재 섹션
         switch(currentScene){
             case 0:
                 // console.log('0 play');
-                let messageA_opacity_in =calcVaues(values.messageA_opacity,currentYOffset);
+                let messageA_opacity_in = calcValues(values.messageA_opacity_in,currentYOffset);
+                let messageA_opacity_out = calcValues(values.messageA_opacity_in,currentYOffset);
                 objs.messageA.style.opacity = messageA_opacity_in;
-                console.log(messageA_opacity_in)
+                // console.log(messageA_opacity_in)
                 break;
             case 1:
                 // console.log('1 play');
@@ -147,10 +159,12 @@
 
     window.addEventListener('scroll',()=>{
         yOffset = window.pageYOffset;
-        //console.log(yOffset);
+        console.log(yOffset);
         scrollLoop();
     });
     // window.addEventListener('load',setLayout)
+    //로드가 되고 setlayout이 되야 애니메이션이 보이니까 순서 중요해~
+    //
     window.addEventListener('DOMContentLoaded',setLayout)
     window.addEventListener('resize',setLayout);
     setLayout();
